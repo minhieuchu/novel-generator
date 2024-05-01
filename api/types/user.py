@@ -9,15 +9,15 @@ class User:
 
 
 @strawberry.type
-class AddUserPayload:
+class SignUpResponse:
     code: int
-    success: bool
-    message: str
-    user: User | None
+    error: str | None = None
+    access_token: str | None = None
+    refresh_token: str | None = None
 
 
 @strawberry.input
-class AddUserInput:
+class SignUpInput:
     email: str
     name: str
     password: str
