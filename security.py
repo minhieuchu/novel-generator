@@ -66,18 +66,7 @@ def get_user_by_email(email: str) -> User | None:
         if not status or user_model is None:
             return None
 
-        return User.model_validate(**user_model.__dict__)
-
-
-async def authenticate_user(email: str, plain_password: str) -> User | bool:
-    """Authenticate email/password when the user logins"""
-
-    user = get_user_by_email(email=email)
-    if not user:
-        return False
-    if not verify_password(plain_password, user.password):
-        return False
-    return user
+        return User.model_validate(user_model.__dict__)
 
 
 def get_current_user(token: Annotated[str, Depends(oauth2_scheme)]) -> User | None:
