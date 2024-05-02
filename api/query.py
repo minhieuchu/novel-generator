@@ -3,6 +3,8 @@ import strawberry
 from api.permission import IsAuthenticated
 from api.types.auth import LoginResult
 from api.types.user import User
+from api.types.story import Story
+from crud.story import get_stories
 from crud.user import crud_user
 from db.session import get_db
 from security import (
@@ -65,3 +67,8 @@ class Query:
                 name=user_model.name,
                 email=user_model.email,
             )
+
+    @strawberry.field
+    async def stories(self) -> list[Story]:
+        stories = await get_stories()
+        return [Story(story.__dict__) for story in stories]

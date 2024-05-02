@@ -5,5 +5,5 @@ import strawberry
 class LoginResult:
     code: int
     message: str
-    access_token: str | None
-    refresh_token: str | None
+    access_token: str | None = None
+    refresh_token: str | None = None

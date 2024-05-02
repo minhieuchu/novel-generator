@@ -1,6 +1,8 @@
 version: '2.4'
 volumes:
   postgres-data-volume:
+  mongodb_data_container:
+
 services:
 
   postgres:
@@ -25,3 +27,14 @@ services:
       - "5432:5432"
     volumes:
       - postgres-data-volume:/var/lib/postgresql/data
+
+  mongodb_container:
+    image: mongo:latest
+    restart: always
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: root
+      MONGO_INITDB_ROOT_PASSWORD: F4NB1oPmM60eKHH
+    ports:
+      - 27017:27017
+    volumes:
+      - mongodb_data_container:/data/db
