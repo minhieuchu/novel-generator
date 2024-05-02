@@ -5,6 +5,7 @@ import strawberry
 @strawberry.type
 class Story:
     id: strawberry.ID
+    author_id: strawberry.ID
     title: str
     genre: str
     theme: str
@@ -13,6 +14,7 @@ class Story:
 
 @strawberry.input
 class AddStoryInput:
+    author_id: strawberry.ID
     title: str
     genre: str
     theme: str
@@ -22,6 +24,7 @@ class AddStoryInput:
 @strawberry.type
 class UpdateStoryInput:
     id: strawberry.ID
+    author_id: Optional[strawberry.ID]
     title: Optional[str] = None
     genre: Optional[str] = None
     theme: Optional[str] = None

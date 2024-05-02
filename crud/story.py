@@ -21,6 +21,18 @@ async def get_story(id: str) -> Story | None:
     return None
 
 
+async def get_stories_by_author(author_id: str) -> list[Story]:
+    stories: list[Story] = []
+    async for story in story_collection.find({"author_id": author_id}):
+        stories.append(get_story_from_json(story))
+    return stories
+
+
 async def add_story(story_data: AddStoryInput):
     result = await story_collection.insert_one(story_data.__dict__)
     return result.inserted_id
+
+
+# For development only
+def delete_stories():
+    story_collection.delete_many({})

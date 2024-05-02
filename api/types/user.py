@@ -1,6 +1,9 @@
 from typing import Optional
 import strawberry
 
+from api.types.story import Story
+from crud.story import get_stories_by_author
+
 
 @strawberry.type
 class User:
@@ -8,6 +11,10 @@ class User:
     name: str
     email: str
 
+    @strawberry.field
+    async def stories(self) -> list[Story]:
+        stories = await get_stories_by_author(author_id=self.id)
+        return stories
 
 @strawberry.type
 class SignUpResponse:
