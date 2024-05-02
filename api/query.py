@@ -71,4 +71,13 @@ class Query:
     @strawberry.field
     async def stories(self) -> list[Story]:
         stories = await get_stories()
-        return [Story(story.__dict__) for story in stories]
+        return [
+            Story(
+                id=strawberry.ID(story.id),
+                title=story.title,
+                genre=story.genre,
+                theme=story.theme,
+                content=story.content,
+            )
+            for story in stories
+        ]

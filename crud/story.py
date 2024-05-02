@@ -1,7 +1,7 @@
 from bson import ObjectId
+from api.types.story import AddStoryInput, Story
 from crud.utils import get_story_from_json
 from db.init_db import mongo_database
-from schemas.story import Story, StoryCreate
 
 story_collection = mongo_database.get_collection("stories")
 
@@ -21,6 +21,6 @@ async def get_story(id: str) -> Story | None:
     return None
 
 
-async def add_story(story_data: StoryCreate):
+async def add_story(story_data: AddStoryInput):
     result = await story_collection.insert_one(story_data.__dict__)
     return result.inserted_id

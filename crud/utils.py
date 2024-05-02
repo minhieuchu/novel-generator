@@ -1,4 +1,4 @@
-from schemas.story import Story
+from api.types.story import Story
 
 
 def get_story_from_json(story: dict) -> Story:

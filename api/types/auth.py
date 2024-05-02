@@ -1,3 +1,4 @@
+from typing import Optional
 import strawberry
 
 
@@ -5,5 +6,5 @@ import strawberry
 class LoginResult:
     code: int
     message: str
-    access_token: str | None = None
-    refresh_token: str | None = None
+    access_token: Optional[str] = None
+    refresh_token: Optional[str] = None

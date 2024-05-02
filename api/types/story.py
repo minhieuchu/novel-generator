@@ -1,3 +1,4 @@
+from typing import Optional
 import strawberry
 
 
@@ -10,7 +11,7 @@ class Story:
     content: str
 
 
-@strawberry.type
+@strawberry.input
 class AddStoryInput:
     title: str
     genre: str
@@ -21,14 +22,14 @@ class AddStoryInput:
 @strawberry.type
 class UpdateStoryInput:
     id: strawberry.ID
-    title: str | None
-    genre: str | None
-    theme: str | None
-    content: str | None
+    title: Optional[str] = None
+    genre: Optional[str] = None
+    theme: Optional[str] = None
+    content: Optional[str] = None
 
 
 @strawberry.type
 class AddStoryResponse:
     code: int
-    error: str | None
+    error: Optional[str] = None
     id: strawberry.ID

@@ -1,3 +1,4 @@
+from typing import Optional
 import strawberry
 
 
@@ -11,9 +12,9 @@ class User:
 @strawberry.type
 class SignUpResponse:
     code: int
-    error: str | None = None
-    access_token: str | None = None
-    refresh_token: str | None = None
+    error: Optional[str] = None
+    access_token: Optional[str] = None
+    refresh_token: Optional[str] = None
 
 
 @strawberry.input

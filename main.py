@@ -1,17 +1,10 @@
-from fastapi import Depends, FastAPI, Request
+from fastapi import FastAPI
 from starlette.middleware.cors import CORSMiddleware
 from strawberry.fastapi import GraphQLRouter
-from sqlalchemy.orm import Session
 import uvicorn
 
 from api.schema import schema
 from db.init_db import initialize_database_tables
-from db.session import get_db
-
-
-async def context_getter(request: Request, db: Session = Depends(get_db)):
-    pass
-
 
 app = FastAPI()
 
@@ -23,9 +16,7 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-graphql_router = GraphQLRouter(
-    schema, path="/", graphql_ide="apollo-sandbox", context_getter=context_getter
-)
+graphql_router = GraphQLRouter(schema, path="/", graphql_ide="apollo-sandbox")
 app.include_router(graphql_router)
 
 if __name__ == "__main__":
