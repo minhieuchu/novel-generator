@@ -19,5 +19,14 @@ class CRUDUser(CRUDBase[ORMUserModel]):
 
         return status, user
 
+    def get_users_from_ids(self, db: Session, ids: list[str]) -> list[ORMUserModel]:
+        users: list[ORMUserModel] = []
+        try:
+            users = db.query(self.model).filter(self.model.id.in_(ids)).all()
+        except Exception as e:
+            _logger.error("Database Exception: %s", e.__repr__())
+
+        return users
+
 
 crud_user = CRUDUser(ORMUserModel)

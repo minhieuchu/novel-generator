@@ -6,9 +6,11 @@ from api.types.user import SignUpInput, SignUpResponse
 from crud.story import add_story, delete_stories
 from crud.user import crud_user
 from crud.user_story import crud_user_story
+from crud.user_user import crud_user_user
 from db.session import get_db
 from schemas.user import UserCreate
 from schemas.user_story import UserStoryCreate
+from schemas.user_user import UserUserCreate
 from security import create_access_token, create_refresh_token, get_password_hash
 
 
@@ -42,6 +44,7 @@ class Mutation:
         inserted_id = await add_story(add_story_input)
         return AddStoryResponse(code=200, id=strawberry.ID(inserted_id))
 
+    # ========== Story ==========
     @strawberry.mutation(permission_classes=[IsAuthenticated])
     def follow_story(self, user_id: str, story_id: str) -> bool:
         with get_db() as db:
@@ -59,6 +62,29 @@ class Mutation:
             if existing_record is None:
                 return False
             status = crud_user_story.delete(db=db, id=existing_record.id)
+            return status
+
+    # ========== User ==========
+    @strawberry.mutation(permission_classes=[IsAuthenticated])
+    def follow_user(self, follower_id: str, followee_id: str) -> bool:
+        with get_db() as db:
+            status, _ = crud_user_user.create(
+                db=db,
+                create_object=UserUserCreate(
+                    follower_id=follower_id, followee_id=followee_id
+                ),
+            )
+            return status
+
+    @strawberry.mutation(permission_classes=[IsAuthenticated])
+    def unfollow_user(self, follower_id: str, followee_id: str) -> bool:
+        with get_db() as db:
+            existing_record = crud_user_user.get_record(
+                db=db, follower_id=follower_id, followee_id=followee_id
+            )
+            if existing_record is None:
+                return False
+            status = crud_user_user.delete(db=db, id=existing_record.id)
             return status
 
     # For development only
