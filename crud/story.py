@@ -1,3 +1,4 @@
+from typing import Optional
 from bson import ObjectId
 from api.types.story import AddStoryInput, Story
 from crud.utils import get_story_from_json
@@ -14,7 +15,7 @@ async def get_stories() -> list[Story]:
     return stories
 
 
-async def get_story(id: str) -> Story | None:
+async def get_story(id: str) -> Optional[Story]:
     story = await story_collection.find_one({"_id": ObjectId(id)})
     if story:
         return get_story_from_json(story=story)
@@ -24,6 +25,15 @@ async def get_story(id: str) -> Story | None:
 async def get_stories_by_author(author_id: str) -> list[Story]:
     stories: list[Story] = []
     async for story in story_collection.find({"author_id": author_id}):
+        stories.append(get_story_from_json(story))
+    return stories
+
+
+async def get_stories_by_ids(ids: list[str]) -> list[Story]:
+    stories: list[Story] = []
+    async for story in story_collection.find(
+        {"_id": {"$in": [ObjectId(id) for id in ids]}}
+    ):
         stories.append(get_story_from_json(story))
     return stories
 
