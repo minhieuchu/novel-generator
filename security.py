@@ -1,5 +1,5 @@
 from datetime import datetime, timedelta
-from typing import Annotated
+from typing import Annotated, Optional
 from fastapi import Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordBearer
 from jose import JWTError, jwt, ExpiredSignatureError
@@ -21,7 +21,7 @@ pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/api/v1/auth/login")
 
 
-def create_access_token(data: dict, expires_delta: timedelta | None = None):
+def create_access_token(data: dict, expires_delta: Optional[timedelta] = None):
     """Create an expired access token from user data"""
 
     to_encode = data.copy()  # data to be encoded
@@ -39,7 +39,7 @@ def create_access_token(data: dict, expires_delta: timedelta | None = None):
     return encoded_jwt
 
 
-def create_refresh_token(data: dict, expires_delta: timedelta | None = None) -> str:
+def create_refresh_token(data: dict, expires_delta: Optional[timedelta] = None) -> str:
     to_encode = data.copy()
     if expires_delta:
         expire = datetime.now() + expires_delta
@@ -60,7 +60,7 @@ def verify_password(plain_password, hashed_password):
     return pwd_context.verify(plain_password, hashed_password)
 
 
-def get_user_by_email(email: str) -> User | None:
+def get_user_by_email(email: str) -> Optional[User]:
     with get_db() as db:
         status, user_model = crud_user.get_user_by_email(db=db, email=email)
         if not status or user_model is None:
@@ -69,7 +69,7 @@ def get_user_by_email(email: str) -> User | None:
         return User.model_validate(user_model.__dict__)
 
 
-def get_current_user(token: Annotated[str, Depends(oauth2_scheme)]) -> User | None:
+def get_current_user(token: Annotated[str, Depends(oauth2_scheme)]) -> Optional[User]:
     credential_exception = HTTPException(
         status_code=status.HTTP_401_UNAUTHORIZED,
         detail="Could not validate credentials",
@@ -98,12 +98,12 @@ def get_current_user(token: Annotated[str, Depends(oauth2_scheme)]) -> User | No
 
 async def get_current_active_user(
     current_user: Annotated[User, Depends(get_current_user)]
-) -> User | None:
+) -> Optional[User]:
     """Get the current active user"""
     return current_user
 
 
-async def validate_token(token: str = Depends(oauth2_scheme)) -> User | None:
+async def validate_token(token: str = Depends(oauth2_scheme)) -> Optional[User]:
     user = get_current_user(token=token)
     return user
 

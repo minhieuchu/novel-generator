@@ -1,7 +1,23 @@
-from sqlalchemy import Column, ForeignKey, String, BigInteger, UniqueConstraint, func
+import enum
+from sqlalchemy import (
+    Column,
+    Enum,
+    ForeignKey,
+    String,
+    BigInteger,
+    UniqueConstraint,
+    func,
+)
 import uuid
 
 from db.base_class import Base
+
+
+class UserStoryRelationEnum(enum.Enum):
+    READ = "READ"
+    FOLLOW = "FOLLOW"
+    COMMENT = "COMMENT"
+    PURCHASE = "PURCHASE"
 
 
 class ORMUserStoryModel(Base):
@@ -16,6 +32,7 @@ class ORMUserStoryModel(Base):
         nullable=False,
     )
     story_id = Column(String(255), nullable=False)
+    relation_type = Column(Enum(UserStoryRelationEnum), nullable=False)
     created_at = Column(BigInteger, server_default=func.extract("epoch", func.now()))
     updated_at = Column(
         BigInteger,

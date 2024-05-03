@@ -1,3 +1,4 @@
+from typing import Optional
 import strawberry
 
 from api.permission import IsAuthenticated
@@ -56,7 +57,7 @@ class Query:
             ]
 
     @strawberry.field(permission_classes=[IsAuthenticated])
-    def user(self, id: strawberry.ID) -> User | None:
+    def user(self, id: strawberry.ID) -> Optional[User]:
         with get_db() as db:
             status, user_model = crud_user.get(db=db, id=id)
             if not status or user_model is None:

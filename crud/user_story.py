@@ -10,13 +10,20 @@ _logger = logging.getLogger(__name__)
 
 class CRUDUserStory(CRUDBase[ORMUserStoryModel]):
     def get_record(
-        self, db: Session, user_id: str, story_id: str
+        self,
+        db: Session,
+        user_id: str,
+        story_id: str,
+        relation_type: str,
     ) -> Optional[ORMUserStoryModel]:
         try:
             record = (
                 db.query(self.model)
-                .filter(self.model.user_id == user_id)
-                .filter(self.model.story_id == story_id)
+                .filter(
+                    self.model.user_id == user_id,
+                    self.model.story_id == story_id,
+                    self.model.relation_type == relation_type,
+                )
                 .first()
             )
         except Exception as e:
@@ -24,9 +31,18 @@ class CRUDUserStory(CRUDBase[ORMUserStoryModel]):
             return None
         return record
 
-    def get_user_followed_stories(self, db: Session, user_id: str) -> list[str]:
+    def get_user_related_stories(
+        self, db: Session, user_id: str, relation_type: str
+    ) -> list[str]:
         try:
-            records = db.query(self.model).filter(self.model.user_id == user_id).all()
+            records = (
+                db.query(self.model)
+                .filter(
+                    self.model.user_id == user_id,
+                    self.model.relation_type == relation_type,
+                )
+                .all()
+            )
         except Exception as e:
             _logger.error("Database Exception: %s", e.__repr__())
             return []
