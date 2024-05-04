@@ -1,11 +1,12 @@
+from datetime import datetime
 from typing import Optional
 import strawberry
 
 from api.permission import IsAuthenticated
-from api.types.story import AddStoryInput, AddStoryResponse
+from api.types.story import AddStoryInput, AddStoryResponse, StoryStatusEnum
 from api.types.user import SignUpInput, SignUpResponse
 from crud.comment import crud_comment
-from crud.story import add_story, delete_stories
+from crud.story import crud_story
 from crud.user import crud_user
 from crud.user_story import crud_user_story
 from crud.user_user import crud_user_user
@@ -51,7 +52,16 @@ class Mutation:
 
     @strawberry.mutation(permission_classes=[IsAuthenticated])
     async def add_story(self, add_story_input: AddStoryInput) -> AddStoryResponse:
-        inserted_id = await add_story(add_story_input)
+        story_input = add_story_input.__dict__
+        story_input.update(
+            {
+                "view_count": 0,
+                "ranking": 0,
+                "status": StoryStatusEnum.ONGOING.value,
+                "publish_date": int(datetime.now().timestamp()),
+            }
+        )
+        inserted_id = await crud_story.add_story(story_input)
         return AddStoryResponse(code=200, id=strawberry.ID(inserted_id))
 
     # ========== Story ==========
@@ -178,4 +188,4 @@ class Mutation:
     # For development only
     @strawberry.mutation
     def delete_stories(self) -> None:
-        delete_stories()
+        crud_story.delete_stories()

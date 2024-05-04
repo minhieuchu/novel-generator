@@ -5,8 +5,9 @@ from api.permission import IsAuthenticated
 from api.types.auth import LoginResult
 from api.types.user import User
 from api.types.story import Story
-from crud.story import get_stories
+from crud.story import crud_story
 from crud.user import crud_user
+from crud.utils import get_story_from_json
 from db.session import get_db
 from security import (
     create_access_token,
@@ -71,5 +72,5 @@ class Query:
 
     @strawberry.field
     async def stories(self) -> list[Story]:
-        stories = await get_stories()
-        return stories
+        stories = await crud_story.get_stories()
+        return [get_story_from_json(story=story) for story in stories]
