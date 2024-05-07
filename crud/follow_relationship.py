@@ -2,16 +2,16 @@ import logging
 from typing import Optional
 from sqlalchemy.orm import Session
 from crud.base import CRUDBase
-from models.user_user import ORMUserUserModel
+from models.follow_relationship import ORMFollowRelationshipModel
 
 logging.basicConfig(level=logging.ERROR)
 _logger = logging.getLogger(__name__)
 
 
-class CRUDUserUser(CRUDBase[ORMUserUserModel]):
+class CRUDFollowRelationship(CRUDBase[ORMFollowRelationshipModel]):
     def get_record(
         self, db: Session, follower_id: str, followee_id: str
-    ) -> Optional[ORMUserUserModel]:
+    ) -> Optional[ORMFollowRelationshipModel]:
         try:
             record = (
                 db.query(self.model)
@@ -25,7 +25,7 @@ class CRUDUserUser(CRUDBase[ORMUserUserModel]):
         return record
 
     def get_follower_ids_from_user_id(self, db: Session, user_id: str) -> list[str]:
-        records: list[ORMUserUserModel] = []
+        records: list[ORMFollowRelationshipModel] = []
         try:
             records = (
                 db.query(self.model).filter(self.model.followee_id == user_id).all()
@@ -36,4 +36,4 @@ class CRUDUserUser(CRUDBase[ORMUserUserModel]):
         return [record.follower_id for record in records]
 
 
-crud_user_user = CRUDUserUser(ORMUserUserModel)
+crud_follow_relationship = CRUDFollowRelationship(ORMFollowRelationshipModel)

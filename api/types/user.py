@@ -7,7 +7,7 @@ from crud.comment import crud_comment
 from crud.user import crud_user
 from crud.story import crud_story
 from crud.user_story import crud_user_story
-from crud.user_user import crud_user_user
+from crud.follow_relationship import crud_follow_relationship
 from crud.utils import get_story_from_json
 from db.session import get_db
 from models.user_story import UserStoryRelationEnum
@@ -66,7 +66,7 @@ class User:
     @strawberry.field
     async def followers(self) -> list[UserBase]:
         with get_db() as db:
-            follower_ids = crud_user_user.get_follower_ids_from_user_id(
+            follower_ids = crud_follow_relationship.get_follower_ids_from_user_id(
                 db=db, user_id=self.id
             )
             user_models = crud_user.get_users_from_ids(db=db, ids=follower_ids)

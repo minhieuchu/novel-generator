@@ -14,7 +14,7 @@ from crud.comment import crud_comment
 from crud.story import crud_story
 from crud.user import crud_user
 from crud.user_story import crud_user_story
-from crud.user_user import crud_user_user
+from crud.follow_relationship import crud_follow_relationship
 from db.session import get_db
 from models.user_story import UserStoryRelationEnum
 from schemas.comment import CommentCreate
@@ -174,7 +174,7 @@ class Mutation:
     @strawberry.mutation(permission_classes=[IsAuthenticated])
     def follow_user(self, follower_id: str, followee_id: str) -> MutationResponse:
         with get_db() as db:
-            status, _ = crud_user_user.create(
+            status, _ = crud_follow_relationship.create(
                 db=db,
                 create_object=UserUserCreate(
                     follower_id=follower_id, followee_id=followee_id
@@ -188,12 +188,12 @@ class Mutation:
     @strawberry.mutation(permission_classes=[IsAuthenticated])
     def unfollow_user(self, follower_id: str, followee_id: str) -> MutationResponse:
         with get_db() as db:
-            existing_record = crud_user_user.get_record(
+            existing_record = crud_follow_relationship.get_record(
                 db=db, follower_id=follower_id, followee_id=followee_id
             )
             if existing_record is None:
                 return MutationResponse(code=400, error="")
-            status = crud_user_user.delete(db=db, id=existing_record.id)
+            status = crud_follow_relationship.delete(db=db, id=existing_record.id)
             if status:
                 return MutationResponse(code=200)
 
