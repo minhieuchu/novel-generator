@@ -4,6 +4,7 @@ import logging
 from sqlalchemy.orm import Session
 import strawberry
 
+from crud.chapter import crud_chapter
 from db.init_db import mongo_database
 from models.comment import ORMCommentModel
 from models.user_story import ORMUserStoryModel
@@ -17,25 +18,33 @@ class CRUDStory:
     async def get_stories(self) -> list[dict]:
         stories: list[dict] = []
         async for story in story_collection.find():
+            chapters = await crud_chapter.get_chapters(story_id=story.get("_id"))
+            story.update({"chapters": chapters})
             stories.append(story)
 
         return stories
 
     async def get_story(self, id: str) -> Optional[dict]:
         story = await story_collection.find_one({"_id": ObjectId(id)})
+        if story is None:
+            return None
+
+        chapters = await crud_chapter.get_chapters(story_id=id)
+        story.update({"chapters": chapters})
         return story
 
-    async def get_stories_by_author(self, author_id: str) -> list[dict]:
+    async def get_stories_by_author(self, author_id: ObjectId) -> list[dict]:
         stories: list[dict] = []
-        async for story in story_collection.find({"author_id": author_id}):
+        async for story in story_collection.find({"author_id": author_id.__str__()}):
+            chapters = await crud_chapter.get_chapters(story_id=story.get("_id"))
+            story.update({"chapters": chapters})
             stories.append(story)
         return stories
 
     async def get_stories_by_ids(self, ids: list[str]) -> list[dict]:
         stories: list[dict] = []
-        async for story in story_collection.find(
-            {"_id": {"$in": [ObjectId(id) for id in ids]}}
-        ):
+        for story_id in ids:
+            story = await self.get_story(id=story_id)
             stories.append(story)
         return stories
 
@@ -51,7 +60,6 @@ class CRUDStory:
 
         filtered_update_data = {k: v for k, v in update_data.items() if v is not None}
         del filtered_update_data["id"]
-        existing_story = dict(existing_story)
         existing_story.update(filtered_update_data)
         await story_collection.update_one(
             filter={"_id": story_id}, update={"$set": existing_story}
@@ -83,10 +91,6 @@ class CRUDStory:
             _logger.error("Database Exception: %s", e.__repr__())
 
         return comment_list
-
-    # For development only
-    def delete_stories(self):
-        story_collection.delete_many({})
 
 
 crud_story = CRUDStory()

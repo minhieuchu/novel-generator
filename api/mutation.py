@@ -3,6 +3,7 @@ from typing import Optional
 import strawberry
 
 from api.permission import IsAuthenticated
+from api.types.chapter import AddChapterInput, UpdateChapterInput
 from api.types.story import (
     AddStoryInput,
     AddStoryResponse,
@@ -10,6 +11,7 @@ from api.types.story import (
     UpdateStoryInput,
 )
 from api.types.user import SignUpInput, SignUpResponse
+from crud.chapter import crud_chapter
 from crud.comment import crud_comment
 from crud.story import crud_story
 from crud.user import crud_user
@@ -32,6 +34,7 @@ class MutationResponse:
 
 @strawberry.type
 class Mutation:
+    # ========== Auth ==========
     @strawberry.mutation
     def signup(self, signup_input: SignUpInput) -> SignUpResponse:
         user_create = UserCreate(
@@ -55,6 +58,7 @@ class Mutation:
             code=200, access_token=access_token, refresh_token=refresh_token
         )
 
+    # ========== Story ==========
     @strawberry.mutation(permission_classes=[IsAuthenticated])
     async def add_story(self, add_story_input: AddStoryInput) -> AddStoryResponse:
         story_input = add_story_input.__dict__
@@ -78,7 +82,6 @@ class Mutation:
             return MutationResponse(code=200)
         return MutationResponse(code=500, error="Could not update story")
 
-    # ========== Story ==========
     @strawberry.mutation(permission_classes=[IsAuthenticated])
     def follow_story(self, user_id: str, story_id: str) -> MutationResponse:
         with get_db() as db:
@@ -170,6 +173,21 @@ class Mutation:
 
             return MutationResponse(code=500, error="Could not unfollow story")
 
+    # ========== Chapter ==========
+    @strawberry.mutation(permission_classes=[IsAuthenticated])
+    async def add_chapter(self, add_chapter_input: AddChapterInput) -> MutationResponse:
+        await crud_chapter.add_chapter(add_chapter_input.__dict__)
+        return MutationResponse(code=200)
+
+    @strawberry.mutation(permission_classes=[IsAuthenticated])
+    async def update_chapter(
+        self, update_chapter_input: UpdateChapterInput
+    ) -> MutationResponse:
+        status = await crud_chapter.update_chapter(update_chapter_input.__dict__)
+        if status:
+            return MutationResponse(code=200)
+        return MutationResponse(code=500, error="Could not update chapter")
+
     # ========== User ==========
     @strawberry.mutation(permission_classes=[IsAuthenticated])
     def follow_user(self, follower_id: str, followee_id: str) -> MutationResponse:
@@ -198,8 +216,3 @@ class Mutation:
                 return MutationResponse(code=200)
 
             return MutationResponse(code=500, error="Could not unfollow user")
-
-    # For development only
-    @strawberry.mutation
-    def delete_stories(self) -> None:
-        crud_story.delete_stories()

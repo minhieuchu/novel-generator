@@ -2,6 +2,7 @@ import enum
 from typing import Optional
 import strawberry
 
+from api.types.chapter import Chapter
 from api.types.comment import Comment
 from crud.user import crud_user
 from crud.story import crud_story
@@ -28,12 +29,12 @@ class Story:
     title: str
     genre: str
     theme: str
-    content: str
     description: str
     view_count: int
     publish_date: int
     ranking: int
     status: StoryStatusEnum
+    chapters: list[Chapter]
 
     @strawberry.field
     def author(self) -> Optional[AuthorBase]:
@@ -69,8 +70,8 @@ class AddStoryInput:
     title: str
     genre: str
     theme: str
-    content: str
     description: str
+    has_multiple_chapters: bool
 
 
 @strawberry.input
@@ -80,11 +81,11 @@ class UpdateStoryInput:
     title: Optional[str] = None
     genre: Optional[str] = None
     theme: Optional[str] = None
-    content: Optional[str] = None
     description: Optional[str] = None
     view_count: Optional[int] = None
     ranking: Optional[int] = None
     status: Optional[StoryStatusEnum] = None
+    has_multiple_chapters: Optional[bool] = None
 
 
 @strawberry.type
