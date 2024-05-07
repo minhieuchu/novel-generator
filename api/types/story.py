@@ -73,15 +73,18 @@ class AddStoryInput:
     description: str
 
 
-@strawberry.type
+@strawberry.input
 class UpdateStoryInput:
     id: strawberry.ID
-    author_id: Optional[strawberry.ID]
+    author_id: Optional[strawberry.ID] = None
     title: Optional[str] = None
     genre: Optional[str] = None
     theme: Optional[str] = None
     content: Optional[str] = None
     description: Optional[str] = None
+    view_count: Optional[int] = None
+    ranking: Optional[int] = None
+    status: Optional[StoryStatusEnum] = None
 
 
 @strawberry.type

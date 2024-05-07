@@ -43,6 +43,21 @@ class CRUDStory:
         result = await story_collection.insert_one(story_data)
         return result.inserted_id
 
+    async def update_story(self, update_data: dict) -> bool:
+        story_id = ObjectId(update_data.get("id"))
+        existing_story = await story_collection.find_one({"_id": story_id})
+        if existing_story is None:
+            return False
+
+        filtered_update_data = {k: v for k, v in update_data.items() if v is not None}
+        del filtered_update_data["id"]
+        existing_story = dict(existing_story)
+        existing_story.update(filtered_update_data)
+        await story_collection.update_one(
+            filter={"_id": story_id}, update={"$set": existing_story}
+        )
+        return True
+
     def get_story_comments(self, db: Session, story_id: str) -> list[dict]:
         comment_list: list[dict] = []
         try:

@@ -3,7 +3,12 @@ from typing import Optional
 import strawberry
 
 from api.permission import IsAuthenticated
-from api.types.story import AddStoryInput, AddStoryResponse, StoryStatusEnum
+from api.types.story import (
+    AddStoryInput,
+    AddStoryResponse,
+    StoryStatusEnum,
+    UpdateStoryInput,
+)
 from api.types.user import SignUpInput, SignUpResponse
 from crud.comment import crud_comment
 from crud.story import crud_story
@@ -63,6 +68,15 @@ class Mutation:
         )
         inserted_id = await crud_story.add_story(story_input)
         return AddStoryResponse(code=200, id=strawberry.ID(inserted_id))
+
+    @strawberry.mutation(permission_classes=[IsAuthenticated])
+    async def update_story(
+        self, update_story_input: UpdateStoryInput
+    ) -> MutationResponse:
+        status = await crud_story.update_story(update_story_input.__dict__)
+        if status:
+            return MutationResponse(code=200)
+        return MutationResponse(code=500, error="Could not update story")
 
     # ========== Story ==========
     @strawberry.mutation(permission_classes=[IsAuthenticated])
