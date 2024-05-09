@@ -66,7 +66,7 @@ class Story:
 
 @strawberry.input
 class AddStoryInput:
-    author_id: strawberry.ID
+    author_id: str
     title: str
     genre: str
     theme: str
@@ -76,8 +76,7 @@ class AddStoryInput:
 
 @strawberry.input
 class UpdateStoryInput:
-    id: strawberry.ID
-    author_id: Optional[strawberry.ID] = None
+    id: str
     title: Optional[str] = None
     genre: Optional[str] = None
     theme: Optional[str] = None
@@ -92,4 +91,4 @@ class UpdateStoryInput:
 class AddStoryResponse:
     code: int
     error: Optional[str] = None
-    id: strawberry.ID
+    id: str

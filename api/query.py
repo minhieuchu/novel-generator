@@ -45,20 +45,7 @@ class Query:
         )
 
     @strawberry.field(permission_classes=[IsAuthenticated])
-    def users(self, info: strawberry.Info) -> list[User]:
-        with get_db() as db:
-            _, user_models = crud_user.get_multi(db=db)
-            return [
-                User(
-                    id=strawberry.ID(user_model.id),
-                    name=user_model.name,
-                    email=user_model.email,
-                )
-                for user_model in user_models
-            ]
-
-    @strawberry.field(permission_classes=[IsAuthenticated])
-    def user(self, id: strawberry.ID) -> Optional[User]:
+    def user(self, id: str) -> Optional[User]:
         with get_db() as db:
             status, user_model = crud_user.get(db=db, id=id)
             if not status or user_model is None:

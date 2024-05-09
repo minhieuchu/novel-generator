@@ -3,6 +3,7 @@ from starlette.middleware.cors import CORSMiddleware
 from strawberry.fastapi import GraphQLRouter
 import uvicorn
 
+from api.permission import Context
 from api.schema import schema
 from db.init_db import initialize_database_tables
 
@@ -16,7 +17,14 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-graphql_router = GraphQLRouter(schema, path="/", graphql_ide="apollo-sandbox")
+
+async def get_context() -> Context:
+    return Context()
+
+
+graphql_router = GraphQLRouter(
+    schema, path="/", graphql_ide="apollo-sandbox", context_getter=get_context
+)
 app.include_router(graphql_router)
 
 if __name__ == "__main__":

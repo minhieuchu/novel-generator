@@ -13,7 +13,7 @@ class Chapter:
 
 @strawberry.input
 class AddChapterInput:
-    story_id: strawberry.ID
+    story_id: str
     chapter_index: int
     title: str
     content: str
@@ -21,7 +21,7 @@ class AddChapterInput:
 
 @strawberry.input
 class UpdateChapterInput:
-    story_id: strawberry.ID
+    story_id: str
     chapter_index: int
     title: Optional[str] = None
     content: Optional[str] = None

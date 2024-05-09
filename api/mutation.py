@@ -2,7 +2,7 @@ from datetime import datetime
 from typing import Optional
 import strawberry
 
-from api.permission import IsAuthenticated
+from api.permission import Context, IsAuthenticated
 from api.types.chapter import AddChapterInput, UpdateChapterInput
 from api.types.story import (
     AddStoryInput,
@@ -60,7 +60,11 @@ class Mutation:
 
     # ========== Story ==========
     @strawberry.mutation(permission_classes=[IsAuthenticated])
-    async def add_story(self, add_story_input: AddStoryInput) -> AddStoryResponse:
+    async def add_story(
+        self, add_story_input: AddStoryInput, info: strawberry.Info[Context]
+    ) -> AddStoryResponse:
+        if add_story_input.author_id != info.context.user.id.__str__():
+            return AddStoryResponse(code=400, error="")
         story_input = add_story_input.__dict__
         story_input.update(
             {
@@ -71,12 +75,18 @@ class Mutation:
             }
         )
         inserted_id = await crud_story.add_story(story_input)
-        return AddStoryResponse(code=200, id=strawberry.ID(inserted_id))
+        return AddStoryResponse(code=200, id=str(inserted_id))
 
     @strawberry.mutation(permission_classes=[IsAuthenticated])
     async def update_story(
-        self, update_story_input: UpdateStoryInput
+        self, update_story_input: UpdateStoryInput, info: strawberry.Info[Context]
     ) -> MutationResponse:
+        existing_story = await crud_story.get_story(id=update_story_input.id)
+        if existing_story.get("author_id") != info.context.user.id.__str__():
+            return MutationResponse(
+                code=400, error="Could not update story of other user"
+            )
+
         status = await crud_story.update_story(update_story_input.__dict__)
         if status:
             return MutationResponse(code=200)
@@ -115,7 +125,11 @@ class Mutation:
             return MutationResponse(code=500, error="")
 
     @strawberry.mutation(permission_classes=[IsAuthenticated])
-    def purchase_story(self, user_id: str, story_id: str) -> MutationResponse:
+    async def purchase_story(self, user_id: str, story_id: str) -> MutationResponse:
+        story = await crud_story.get_story(id=story_id)
+        if story.get("author_id") == user_id:
+            return MutationResponse(code=400, error="Could not purchase your story")
+
         with get_db() as db:
             status, _ = crud_user_story.create(
                 db=db,
@@ -175,14 +189,28 @@ class Mutation:
 
     # ========== Chapter ==========
     @strawberry.mutation(permission_classes=[IsAuthenticated])
-    async def add_chapter(self, add_chapter_input: AddChapterInput) -> MutationResponse:
+    async def add_chapter(
+        self, add_chapter_input: AddChapterInput, info: strawberry.Info[Context]
+    ) -> MutationResponse:
+        story = await crud_story.get_story(id=add_chapter_input.story_id)
+        author_id = story.get("author_id")
+        if info.context.user.id.__str__() != author_id:
+            return MutationResponse(
+                code=400, error="Can not add chapter to other users' story"
+            )
         await crud_chapter.add_chapter(add_chapter_input.__dict__)
         return MutationResponse(code=200)
 
     @strawberry.mutation(permission_classes=[IsAuthenticated])
     async def update_chapter(
-        self, update_chapter_input: UpdateChapterInput
+        self, update_chapter_input: UpdateChapterInput, info: strawberry.Info[Context]
     ) -> MutationResponse:
+        story = await crud_story.get_story(id=update_chapter_input.story_id)
+        author_id = story.get("author_id")
+        if info.context.user.id.__str__() != author_id:
+            return MutationResponse(
+                code=400, error="Can not update chapter of other users' story"
+            )
         status = await crud_chapter.update_chapter(update_chapter_input.__dict__)
         if status:
             return MutationResponse(code=200)
