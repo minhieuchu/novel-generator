@@ -1,14 +1,9 @@
-from typing import Optional
 import strawberry
 
-from api.permission import IsAuthenticated
 from api.types.auth import LoginResult
-from api.types.user import User
 from api.types.story import Story
 from crud.story import crud_story
-from crud.user import crud_user
 from crud.utils import get_story_from_json
-from db.session import get_db
 from security import (
     create_access_token,
     create_refresh_token,
@@ -43,19 +38,6 @@ class Query:
             access_token=access_token,
             refresh_token=refresh_token,
         )
-
-    @strawberry.field(permission_classes=[IsAuthenticated])
-    def user(self, id: str) -> Optional[User]:
-        with get_db() as db:
-            status, user_model = crud_user.get(db=db, id=id)
-            if not status or user_model is None:
-                return None
-
-            return User(
-                id=strawberry.ID(user_model.id),
-                name=user_model.name,
-                email=user_model.email,
-            )
 
     @strawberry.field
     async def stories(self) -> list[Story]:

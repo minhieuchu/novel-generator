@@ -4,8 +4,6 @@ import strawberry
 
 @strawberry.type
 class Chapter:
-    id: strawberry.ID
-    story_id: strawberry.ID
     chapter_index: int
     title: str
     content: str

@@ -4,6 +4,7 @@ import strawberry
 
 from api.permission import Context, IsAuthenticated
 from api.types.chapter import AddChapterInput, UpdateChapterInput
+from api.types.comment import AddCommentInput
 from api.types.story import (
     AddStoryInput,
     AddStoryResponse,
@@ -11,15 +12,12 @@ from api.types.story import (
     UpdateStoryInput,
 )
 from api.types.user import SignUpInput, SignUpResponse
-from crud.chapter import crud_chapter
-from crud.comment import crud_comment
 from crud.story import crud_story
 from crud.user import crud_user
 from crud.user_story import crud_user_story
 from crud.follow_relationship import crud_follow_relationship
 from db.session import get_db
 from models.user_story import UserStoryRelationEnum
-from schemas.comment import CommentCreate
 from schemas.user import UserCreate
 from schemas.user_story import UserStoryCreate
 from schemas.user_user import UserUserCreate
@@ -65,6 +63,12 @@ class Mutation:
     ) -> AddStoryResponse:
         if add_story_input.author_id != info.context.user.id.__str__():
             return AddStoryResponse(code=400, error="")
+
+        with get_db() as db:
+            _, author = crud_user.get(db=db, id=add_story_input.author_id)
+            if author is None:
+                return AddStoryResponse(code=400, error="Author does not exist")
+
         story_input = add_story_input.__dict__
         story_input.update(
             {
@@ -72,6 +76,7 @@ class Mutation:
                 "ranking": 0,
                 "status": StoryStatusEnum.ONGOING.value,
                 "publish_date": int(datetime.now().timestamp()),
+                "author": {"id": author.id, "name": author.name, "email": author.email},
             }
         )
         inserted_id = await crud_story.add_story(story_input)
@@ -87,7 +92,9 @@ class Mutation:
                 code=400, error="Could not update story of other user"
             )
 
-        status = await crud_story.update_story(update_story_input.__dict__)
+        status = await crud_story.update_story(
+            existing_story, update_story_input.__dict__
+        )
         if status:
             return MutationResponse(code=200)
         return MutationResponse(code=500, error="Could not update story")
@@ -145,30 +152,24 @@ class Mutation:
             return MutationResponse(code=500, error="Could not purchase story")
 
     @strawberry.mutation(permission_classes=[IsAuthenticated])
-    def comment_story(
-        self, user_id: str, story_id: str, content: str
-    ) -> MutationResponse:
+    async def add_comment(self, add_comment_input: AddCommentInput) -> MutationResponse:
         with get_db() as db:
-            status, record_id = crud_user_story.create(
-                db=db,
-                create_object=UserStoryCreate(
-                    user_id=user_id,
-                    story_id=story_id,
-                    relation_type=UserStoryRelationEnum.COMMENT.value,
-                ),
-            )
-            if not status:
-                return MutationResponse(code=500, error="Could not comment on story")
+            _, user = crud_user.get(db=db, id=add_comment_input.user_id)
+        if user is None:
+            return MutationResponse(code=400, error="")
 
-            status, _ = crud_comment.create(
-                db=db,
-                create_object=CommentCreate(user_story_id=record_id, content=content),
-            )
+        comment_data = add_comment_input.__dict__
+        comment_data.update(
+            {
+                "user": {"id": user.id, "name": user.name, "email": user.email},
+                "created_at": int(datetime.now().timestamp()),
+            }
+        )
+        status = await crud_story.add_comment(comment_data)
+        if status:
+            return MutationResponse(code=200)
 
-            if status:
-                return MutationResponse(code=200)
-
-            return MutationResponse(code=500, error="Could not comment on story")
+        return MutationResponse(code=500, error="Could not comment on story")
 
     @strawberry.mutation(permission_classes=[IsAuthenticated])
     def unfollow_story(self, user_id: str, story_id: str) -> MutationResponse:
@@ -193,12 +194,15 @@ class Mutation:
         self, add_chapter_input: AddChapterInput, info: strawberry.Info[Context]
     ) -> MutationResponse:
         story = await crud_story.get_story(id=add_chapter_input.story_id)
-        author_id = story.get("author_id")
+        if story is None:
+            return MutationResponse(code=400)
+
+        author_id = story.get("author").get("id")
         if info.context.user.id.__str__() != author_id:
             return MutationResponse(
                 code=400, error="Can not add chapter to other users' story"
             )
-        await crud_chapter.add_chapter(add_chapter_input.__dict__)
+        await crud_story.add_chapter(add_chapter_input.__dict__)
         return MutationResponse(code=200)
 
     @strawberry.mutation(permission_classes=[IsAuthenticated])
@@ -206,12 +210,12 @@ class Mutation:
         self, update_chapter_input: UpdateChapterInput, info: strawberry.Info[Context]
     ) -> MutationResponse:
         story = await crud_story.get_story(id=update_chapter_input.story_id)
-        author_id = story.get("author_id")
+        author_id = story.get("author").get("id")
         if info.context.user.id.__str__() != author_id:
             return MutationResponse(
                 code=400, error="Can not update chapter of other users' story"
             )
-        status = await crud_chapter.update_chapter(update_chapter_input.__dict__)
+        status = await crud_story.update_chapter(update_chapter_input.__dict__)
         if status:
             return MutationResponse(code=200)
         return MutationResponse(code=500, error="Could not update chapter")

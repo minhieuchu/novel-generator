@@ -21,7 +21,6 @@ class UserStoryRelationEnum(enum.Enum):
 
 
 class ORMUserStoryModel(Base):
-    # This table is for storing many-to-many relationships when users follow stories
     __tablename__ = "user_story"
     __table_args__ = (UniqueConstraint("user_id", "story_id", "relation_type"),)
 

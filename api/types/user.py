@@ -1,9 +1,7 @@
 from typing import Optional
 import strawberry
 
-from api.types.comment import Comment
 from api.types.story import Story
-from crud.comment import crud_comment
 from crud.user import crud_user
 from crud.story import crud_story
 from crud.user_story import crud_user_story
@@ -77,33 +75,6 @@ class User:
                     email=user_model.email,
                 )
                 for user_model in user_models
-            ]
-
-    @strawberry.field
-    async def comments_on_story(self, story_id: str) -> list[Comment]:
-        comments: list[Comment] = []
-        with get_db() as db:
-            record = crud_user_story.get_record(
-                db=db,
-                user_id=self.id,
-                story_id=story_id,
-                relation_type=UserStoryRelationEnum.COMMENT.value,
-            )
-            if record is None:
-                return comments
-
-            _, comment_models = crud_comment.filter_by(
-                db=db, filter_dict={"user_story_id": record.id}
-            )
-
-            return [
-                Comment(
-                    id=strawberry.ID(comment.id),
-                    user_id=record.user_id,
-                    story_id=record.story_id,
-                    content=comment.content,
-                )
-                for comment in comment_models
             ]
 
 
