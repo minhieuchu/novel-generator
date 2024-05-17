@@ -23,11 +23,15 @@ mongo_client = motor.motor_asyncio.AsyncIOMotorClient(MONGO_DETAILS)
 mongo_database = mongo_client.novel_generator
 
 
-def initialize_database_tables() -> bool:
+def initialize_postgres_database() -> bool:
     Base.metadata.create_all(bind=sql_alchemy_engine)
     return True
 
 
-def clear_database_tables() -> bool:
+def clear_postgres_database() -> bool:
     Base.metadata.drop_all(bind=sql_alchemy_engine)
     return True
+
+
+async def initialize_mongodb():
+    await mongo_database.get_collection("stories").create_index({"title": 1})

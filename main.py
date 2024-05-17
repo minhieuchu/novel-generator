@@ -1,3 +1,4 @@
+import asyncio
 from fastapi import FastAPI
 from starlette.middleware.cors import CORSMiddleware
 from strawberry.fastapi import GraphQLRouter
@@ -5,7 +6,7 @@ import uvicorn
 
 from api.permission import Context
 from api.schema import schema
-from db.init_db import initialize_database_tables
+from db.init_db import initialize_mongodb, initialize_postgres_database
 
 app = FastAPI()
 
@@ -28,5 +29,6 @@ graphql_router = GraphQLRouter(
 app.include_router(graphql_router)
 
 if __name__ == "__main__":
-    initialize_database_tables()
+    asyncio.run(initialize_mongodb())
+    initialize_postgres_database()
     uvicorn.run(app, host="0.0.0.0", port=8888)
