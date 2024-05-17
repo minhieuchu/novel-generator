@@ -12,6 +12,12 @@ class StoryStatusEnum(enum.Enum):
     COMPLETED = "COMPLETED"
 
 
+@strawberry.enum
+class StoryTypeEnum(enum.Enum):
+    NOVEL = "NOVEL"
+    COMICS = "COMICS"
+
+
 @strawberry.type
 class AuthorBase:
     id: strawberry.ID
@@ -30,6 +36,7 @@ class Story:
     view_count: int
     publish_date: int
     ranking: int
+    story_type: StoryTypeEnum
     status: StoryStatusEnum
     chapters: list[Chapter]
     comments: list[Comment]
@@ -42,6 +49,7 @@ class AddStoryInput:
     genre: str
     theme: str
     description: str
+    story_type: StoryTypeEnum
     has_multiple_chapters: bool
 
 

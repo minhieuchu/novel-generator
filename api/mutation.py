@@ -75,6 +75,7 @@ class Mutation:
                 "view_count": 0,
                 "ranking": 0,
                 "status": StoryStatusEnum.ONGOING.value,
+                "story_type": story_input.get("story_type").value,
                 "publish_date": int(datetime.now().timestamp()),
                 "author": {"id": author.id, "name": author.name, "email": author.email},
             }

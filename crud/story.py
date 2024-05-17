@@ -54,10 +54,11 @@ class CRUDStory:
         story_id = ObjectId(chapter_data.get("story_id"))
         del chapter_data["story_id"]
         updated_data = {}
-        if "title" in chapter_data:
-            updated_data["chapters.$.title"] = chapter_data.get("title")
-        if "content" in chapter_data:
-            updated_data["chapters.$.content"] = chapter_data.get("content")
+        update_fields = ["title", "content", "images"]
+
+        for field in update_fields:
+            if field in chapter_data:
+                updated_data["chapters.$." + field] = chapter_data.get(field)
 
         await story_collection.update_one(
             filter={

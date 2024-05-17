@@ -28,7 +28,15 @@ graphql_router = GraphQLRouter(
 )
 app.include_router(graphql_router)
 
-if __name__ == "__main__":
-    asyncio.run(initialize_mongodb())
+
+async def main():
+    await initialize_mongodb()
     initialize_postgres_database()
-    uvicorn.run(app, host="0.0.0.0", port=8888)
+
+    config = uvicorn.Config(app, host="0.0.0.0", port=8888)
+    server = uvicorn.Server(config)
+    await server.serve()
+
+
+if __name__ == "__main__":
+    asyncio.run(main())

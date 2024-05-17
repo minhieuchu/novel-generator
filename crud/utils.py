@@ -1,6 +1,6 @@
 from api.types.chapter import Chapter
 from api.types.comment import Comment, CommentUserBase
-from api.types.story import AuthorBase, Story, StoryStatusEnum
+from api.types.story import AuthorBase, Story, StoryStatusEnum, StoryTypeEnum
 
 
 def get_chapter_from_json(chapter: dict) -> Chapter:
@@ -8,6 +8,7 @@ def get_chapter_from_json(chapter: dict) -> Chapter:
         chapter_index=int(chapter.get("chapter_index")),
         title=chapter.get("title"),
         content=chapter.get("content"),
+        images=chapter.get("images"),
     )
 
 
@@ -46,10 +47,11 @@ def get_story_from_json(story: dict) -> Story:
         genre=story.get("genre"),
         theme=story.get("theme"),
         description=story.get("description"),
-        view_count=int(str(story.get("view_count"))),
-        publish_date=int(str(story.get("publish_date"))),
-        ranking=int(str(story.get("ranking"))),
-        status=StoryStatusEnum[str(story.get("status"))],
+        view_count=int(story.get("view_count")),
+        publish_date=int(story.get("publish_date")),
+        ranking=int(story.get("ranking")),
+        story_type=StoryTypeEnum[story.get("story_type")],
+        status=StoryStatusEnum[story.get("status")],
         chapters=chapters,
         author=get_author_base_from_json(story.get("author")),
         comments=comments,
